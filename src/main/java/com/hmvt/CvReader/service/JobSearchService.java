@@ -1,0 +1,308 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.hmvt.CvReader.service;
+
+import com.hmvt.CvReader.model.Job;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ *
+ * @author marti
+ */
+@Service
+public class JobSearchService {
+    
+    private final WebClient webClient;
+    private final ObjectMapper objectMapper;
+
+    public JobSearchService() {
+        this.webClient = WebClient.builder()
+            .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024))
+            .build();
+        this.objectMapper = new ObjectMapper();
+    }
+
+    // Main search method - now takes only query parameter
+    public Mono<List<Job>> searchJobs(String query) {
+        System.out.println("=== JOB SEARCH STARTED ===");
+        System.out.println("Query: " + query);
+        
+        return Flux.merge(
+            //searchArbeitNow(query),
+            searchRemoteOK(query),
+            searchJooble(query)
+        )
+        .collectList()
+        .map(this::flattenJobLists)
+        .timeout(Duration.ofSeconds(30))
+        .onErrorResume(error -> {
+            System.err.println("Error in searchJobs: " + error.getMessage());
+            error.printStackTrace();
+            return Mono.just(new ArrayList<>());
+        });
+    }
+
+    
+    //ARBEIT NOW RESOURCES
+    private Mono<List<Job>> searchArbeitNow(String query) {
+        System.out.println("--- SEARCHING ARBEITNOW ---");
+        try {
+            String url = "https://www.arbeitnow.com/api/job-board-api?search=" + query;
+            System.out.println("ArbeitNow URL: " + url);
+            
+            return webClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(String.class)
+                .map(response -> {
+                    System.out.println("ArbeitNow response received, length: " + response.length());
+                    List<Job> jobs = parseArbeitNowResponse(response);
+                    System.out.println("ArbeitNow parsed jobs: " + jobs.size());
+                    return jobs;
+                })
+                .timeout(Duration.ofSeconds(15))
+                .onErrorResume(error -> {
+                    System.err.println("ArbeitNow error: " + error.getMessage());
+                    return Mono.just(new ArrayList<>());
+                });
+        } catch (Exception e) {
+            System.err.println("ArbeitNow exception: " + e.getMessage());
+            return Mono.just(new ArrayList<>());
+        }
+    }
+    
+    private List<Job> parseArbeitNowResponse(String response) {
+        List<Job> jobs = new ArrayList<>();
+        try {
+            System.out.println("Parsing ArbeitNow response...");
+            JsonNode root = objectMapper.readTree(response);
+            JsonNode data = root.get("data");
+            
+            if (data != null && data.isArray()) {
+                System.out.println("Found data array with " + data.size() + " items");
+                for (JsonNode jobNode : data) {
+                    try {
+                        Job job = new Job();
+                        job.setTitle(getTextValue(jobNode, "title"));
+                        job.setCompany(getTextValue(jobNode, "company_name"));
+                        job.setLocation(getTextValue(jobNode, "location"));
+                        job.setUrl(getTextValue(jobNode, "url"));
+                        job.setSource("ArbeitNow");
+                        job.setPostedDate(getTextValue(jobNode, "created_at"));
+                        
+                        if (!job.getTitle().isEmpty() && !job.getCompany().isEmpty()) {
+                            jobs.add(job);
+                            System.out.println("Added job: " + job.getTitle() + " at " + job.getCompany());
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error parsing individual ArbeitNow job: " + e.getMessage());
+                    }
+                }
+            } else {
+                System.out.println("No 'data' array found in ArbeitNow response");
+                System.out.println("Response structure: " + root.fieldNames());
+            }
+        } catch (Exception e) {
+            System.err.println("Error parsing ArbeitNow response: " + e.getMessage());
+            e.printStackTrace();
+        }
+        System.out.println("ArbeitNow parsing completed, jobs found: " + jobs.size());
+        return jobs;
+    }
+
+
+    //REMOTE OK RESOURCES
+    private Mono<List<Job>> searchRemoteOK(String query) {
+        System.out.println("--- SEARCHING REMOTEOK ---");
+        try {
+            String url = "https://remoteok.io/api?tags=" + query;
+            System.out.println("RemoteOK URL: " + url);
+            
+            return webClient.get()
+                .uri(url)
+                .header("User-Agent", "JobSearchApp/1.0")
+                .retrieve()
+                .bodyToMono(String.class)
+                .map(response -> {
+                    System.out.println("RemoteOK response received, length: " + response.length());
+                    List<Job> jobs = parseRemoteOKResponse(response);
+                    System.out.println("RemoteOK parsed jobs: " + jobs.size());
+                    return jobs;
+                })
+                .timeout(Duration.ofSeconds(15))
+                .onErrorResume(error -> {
+                    System.err.println("RemoteOK error: " + error.getMessage());
+                    return Mono.just(new ArrayList<>());
+                });
+        } catch (Exception e) {
+            System.err.println("RemoteOK exception: " + e.getMessage());
+            return Mono.just(new ArrayList<>());
+        }
+    }
+    
+    private List<Job> parseRemoteOKResponse(String response) {
+        List<Job> jobs = new ArrayList<>();
+        try {
+            System.out.println("Parsing RemoteOK response...");
+            JsonNode root = objectMapper.readTree(response);
+            
+            if (root.isArray()) {
+                System.out.println("Found array with " + root.size() + " items");
+                
+                for (int i = 1; i < root.size(); i++) {
+                    JsonNode jobNode = root.get(i);
+                   
+                    try {
+                        // Skip the first element which is metadata, and elements without id
+                        if (jobNode.has("id") && jobNode.get("id").isNumber()) {
+                            Job job = new Job();
+                            job.setTitle(getTextValue(jobNode, "position"));
+                            job.setCompany(getTextValue(jobNode, "company"));
+                            job.setLocation(getTextValue(jobNode,"location"));
+                            job.setUrl(getTextValue(jobNode, "url"));
+                            job.setSource("RemoteOK");
+                            job.setPostedDate(getTextValue(jobNode, "date"));
+                            
+                            
+                            // Only add if we have essential fields
+                            if (!job.getTitle().isEmpty() && !job.getCompany().isEmpty()) {
+                                jobs.add(job);
+                                System.out.println("Added job: " + job.getTitle() + " at " + job.getCompany());
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error parsing individual RemoteOK job: " + e.getMessage());
+                    }
+                }
+            } else {
+                System.out.println("RemoteOK response is not an array");
+            }
+        } catch (Exception e) {
+            System.err.println("Error parsing RemoteOK response: " + e.getMessage());
+            e.printStackTrace();
+        }
+        System.out.println("RemoteOK parsing completed, jobs found: " + jobs.size());
+        return jobs;
+    }
+    
+    
+    
+    //JOOBLE RESOURCES
+    private Mono<List<Job>> searchJooble(String query) {
+        System.out.println("--- SEARCHING JOOBLE ---");
+        try {
+            // Check if API key is configured
+            String apiKey = "520b86e7-0d75-44de-a5c7-63aac443d7de";
+            if (apiKey == null || apiKey.equals("YOUR_API_KEY") || apiKey.trim().isEmpty()) {
+                System.out.println("Jooble API key not configured, skipping");
+                return Mono.just(new ArrayList<>());
+            }
+            
+            String url = "https://jooble.org/api/" + apiKey;
+            String requestBody = "{\"keywords\":\"" + query + "\",\"location\":\"\"}";
+            
+            System.out.println("Jooble URL: " + url);
+            System.out.println("Jooble request body: " + requestBody);
+            
+            return webClient.post()
+                .uri(url)
+                .header("Content-Type", "application/json")
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class)
+                .map(response -> {
+                    System.out.println("Jooble response received, length: " + response.length());
+                    List<Job> jobs = parseJoobleResponse(response);
+                    System.out.println("Jooble parsed jobs: " + jobs.size());
+                    return jobs;
+                })
+                .timeout(Duration.ofSeconds(15))
+                .onErrorResume(error -> {
+                    System.err.println("Jooble error: " + error.getMessage());
+                    return Mono.just(new ArrayList<>());
+                });
+        } catch (Exception e) {
+            System.err.println("Jooble exception: " + e.getMessage());
+            return Mono.just(new ArrayList<>());
+        }
+    }
+
+    private List<Job> parseJoobleResponse(String response) {
+        List<Job> jobs = new ArrayList<>();
+        try {
+            System.out.println("Parsing Jooble response...");
+            JsonNode root = objectMapper.readTree(response);
+            JsonNode jobsArray = root.get("jobs");
+            
+            if (jobsArray != null && jobsArray.isArray()) {
+                System.out.println("Found jobs array with " + jobsArray.size() + " items");
+                for (JsonNode jobNode : jobsArray) {
+                    try {
+                        Job job = new Job();
+                        job.setTitle(getTextValue(jobNode, "title"));
+                        job.setCompany(getTextValue(jobNode, "company"));
+                        job.setLocation(getTextValue(jobNode, "location"));
+                        job.setUrl(getTextValue(jobNode, "link"));
+                        job.setSource("Jooble");
+                        job.setSalary(getTextValue(jobNode, "salary"));
+                        
+                        // Only add if we have essential fields
+                        if (!job.getTitle().isEmpty() && !job.getCompany().isEmpty()) {
+                            jobs.add(job);
+                            System.out.println("Added job: " + job.getTitle() + " at " + job.getCompany());
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error parsing individual Jooble job: " + e.getMessage());
+                    }
+                }
+            } else {
+                System.out.println("No 'jobs' array found in Jooble response");
+            }
+        } catch (Exception e) {
+            System.err.println("Error parsing Jooble response: " + e.getMessage());
+            e.printStackTrace();
+        }
+        System.out.println("Jooble parsing completed, jobs found: " + jobs.size());
+        return jobs;
+    }
+    
+
+    // Simple flatten without location filtering
+    private List<Job> flattenJobLists(List<List<Job>> jobLists) {
+        List<Job> allJobs = new ArrayList<>();
+        
+        System.out.println("=== FLATTENING RESULTS ===");
+        for (int i = 0; i < jobLists.size(); i++) {
+            List<Job> jobList = jobLists.get(i);
+            System.out.println("Job list " + i + " size: " + jobList.size());
+            allJobs.addAll(jobList);
+        }
+        
+        System.out.println("=== SEARCH COMPLETED ===");
+        
+        return allJobs;
+    }
+
+    // Utility method to safely get text from JSON nodes
+    private String getTextValue(JsonNode node, String fieldName) {
+        JsonNode field = node.get(fieldName);
+        if (field == null || field.isNull()) {
+            return "";
+        }
+        return field.asText().trim();
+    }
+    
+   
+}

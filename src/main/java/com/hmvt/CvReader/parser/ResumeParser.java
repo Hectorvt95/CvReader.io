@@ -1,0 +1,168 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.hmvt.CvReader.parser;
+
+/**
+ *
+ * @author marti
+ */
+
+
+import com.hmvt.CvReader.model.ResumeInfo;
+import com.hmvt.CvReader.service.LightcastSkillsService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.sax.BodyContentHandler;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.ParseContext;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+
+@Component
+public class ResumeParser {
+    
+    @Autowired
+    private LightcastSkillsService lightcastSkillsService;
+    
+    
+    // Parse resume from file path
+    public ResumeInfo parseResume(String filePath) throws IOException {
+        //Path path = Paths.get(filePath);
+        String content = readFile(filePath) ;
+        return extractInformation(content);
+    }
+    
+    // Parse resume from file but returning a string that has different skills
+    public String parseResumeSkillsOnly(String filePath) throws IOException {
+        
+        String content = readFile(filePath);
+        ArrayList<String> skills = new ArrayList<String>(extractSkills(content));
+        
+        StringBuilder sb = new StringBuilder();
+        for(String skill : skills){
+            if(sb.length() > 0){
+                sb.append(",");
+            }
+            sb.append(skill);
+        }
+        
+        String result = sb.toString();
+        
+        return result;
+    }
+            
+    public String readFile(String filePath) throws IOException {
+        try {
+            AutoDetectParser parser = new AutoDetectParser(); // This parser helps us to detect any type of file (pdf, word, txt)
+            BodyContentHandler handler = new BodyContentHandler(-1); // No limit on content length, this handler is the collector of the text 
+                                                                     // extracted from the file
+            Metadata metadata = new Metadata();
+            ParseContext context = new ParseContext();                                                     
+            
+            try (InputStream stream = Files.newInputStream(Paths.get(filePath))) { //this opens an input stream to the file
+                parser.parse(stream, handler, metadata, context); //it will parse the input stream by detecting the filetype and the extracted
+                return handler.toString();                 //text will be sent to the handler.
+            }
+        } catch (Exception e) {
+            throw new IOException("Failed to read PDF file: " + e.getMessage(), e);
+        }
+    }
+    
+    private ResumeInfo extractInformation(String content) {
+        ResumeInfo info = new ResumeInfo();
+        System.out.println("Extracted content length: " + content.length());
+
+        // Extract skills using Lightcast API
+        info.setSkills(extractSkills(content));
+        
+        // Extract education with a regex
+        info.setLatestEducation(extractLatestEducation(content));
+        
+        // Extract locations with a regex
+        info.setLocations(extractLocations(content));
+
+        return info;
+    }
+    
+    
+    private List<String> extractSkills(String content) {
+        Set<String> foundSkills = new HashSet<>();
+        
+        try {
+            // Use Lightcast API for skill extraction
+            foundSkills = lightcastSkillsService.extractSkillsFromText(content);
+            System.out.println("Extracted " + foundSkills.size() + " skills using Lightcast API");
+            
+        } catch (Exception e) {
+            System.err.println("Failed to use Lightcast API: " + e.getMessage());
+            return null;
+        }
+        
+        return new ArrayList<>(foundSkills);
+    }
+    
+    private String extractLatestEducation(String content) {
+        // Look for degree patterns
+        Pattern degreePattern = Pattern.compile(
+            "(bachelor|master|phd|doctorate|diploma|certificate)\\s+(?:of\\s+)?([^\\n\\r,]+)", 
+            Pattern.CASE_INSENSITIVE
+        );
+        
+        Matcher matcher = degreePattern.matcher(content);
+        String latestEducation = "";
+        
+        while (matcher.find()) {
+            latestEducation = matcher.group(0).trim(); 
+            //group(0) gives you the full matched string, for example: "Bachelor of Computer Science" for the entire regex (pattern)
+            //grroup(1) would be "Bahcelor" and group(2) would be "Computer Science"
+            //this to catch the fist match of this word
+        }
+        
+        return latestEducation.isEmpty() ? "Not specified" : latestEducation;
+    }
+    
+    
+    
+    
+    //THIS IS NOT WORKING PROPERTLY
+    
+    //CHANGE THE PATTERN TO IDENTIFY LOCATIONS
+    //Maybe another api for cities from all over the world?
+    // 
+    private List<String> extractLocations(String content) {
+        Set<String> locations = new HashSet<>();
+        
+        
+        // Common location patterns ?????
+        Pattern locationPattern = Pattern.compile(
+            "(?:location|address|city|state)\\s*:?\\s*([^\\n\\r]+)", 
+            Pattern.CASE_INSENSITIVE
+        );
+        
+        Matcher matcher = locationPattern.matcher(content);
+        while (matcher.find()) {
+            String location = matcher.group(1).trim(); //this will only get what comes after the words "location|address|city|state" which is the one of interest
+            if (location.length() > 2 && location.length() < 10) {
+                locations.add(location);
+            }
+        }
+        
+        return locations.isEmpty() ? null : new ArrayList<>(locations);//if there is no location specified, put it null
+    }
+    
+    
+
+
+   
+}

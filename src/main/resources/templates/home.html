@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' - CvReader.IO'"></title>
+    <link rel="icon" th:href="@{/images/logo_brain_bw_header.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" th:href="@{/css/styles-home.css}">
+    
+</head>
+<body>
+        
+    <div class="cvreader-container">
+        <!-- Navigation bg-light-->
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container">
+                <img class ="navbar-brand" th:src="@{/images/logo_nobg.png}" alt= "Logo" href="/";>
+                <button class="button_box" >
+                    <a class="nav-link" href="/contact">Contact Us</a>
+                </button>
+
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="container text-center">
+                <!-- Initial Welcome Message -->
+                <div id="welcomeSection">
+                    <h1 class="display-4 fw-bold welcome-message" th:text="${message}">Welcome to CvReader.IO</h1>
+                    <h2 class="lead"  style="font-weight: 400; color: white;" th:text="${submessage}">Search across multiple job platforms in one place</h2>
+                </div>
+
+                <!-- Results Header (hidden initially) -->
+                <div id="resultsHeader" style="display: none;">
+                    <h1 class="display-4 fw-bold welcome-message">Jobs Found Based on Your Resume</h1>
+                    <h2 class="lead" id="resultsSubtitle">Found job opportunities</h2>
+                </div>
+                
+                <!-- Messages -->
+                <div id="messageContainer"></div>
+                
+                <!-- Upload Form -->
+                <div id="uploadSection" class="upload-form">
+                    <h3 style="margin-bottom: 20px; color: #333;">Upload Your Resume</h3>
+                    <p style="color: #666; margin-bottom: 20px;">
+                        Upload your resume and we'll find jobs that match your skills
+                    </p>
+                    
+                    <form id="uploadForm">
+                        <div class="file-input-wrapper">
+                            <input type="file" 
+                                   name="filePath" 
+                                   id="fileInput"
+                                   accept=".pdf,.doc,.docx" 
+                                   required
+                                   class="file-input"
+                                   onchange="updateFileName()">
+                            <!--<div id="fileName" class="mt-2 text-muted"></div>-->
+                        </div>
+                        
+                        <!-- GDPR COMPLLIANCE -->
+                        <div class="gdpr" id="gdprConsentMain" style="margin: 20px 0; display:none;">
+                            <label for="gdprConsent">
+                            <input type="checkbox" id="gdprConsent" name="gdprConsent" required >
+                                I consent to the processing of my personal data for job matching purposes 
+                                in accordance with our <a href="/privacy-policy">Privacy Policy</a> and GDPR.
+                            </label>
+                        </div>
+                        
+                        <button class="btn btn-light btn-lg" type="submit" id="submitBtn">
+                            <i class="fa fa-upload"></i> Upload Resume & Find Jobs
+                        </button>
+                        
+                        <div class="loading-spinner" id="loadingSpinner" style="display:none;">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p style="margin-top: 15px;">Processing your resume and searching for jobs...</p>
+                        </div>
+                    </form>
+                    
+                    <p style="color: #888; font-size: 0.9rem; margin-top: 15px;">
+                        Supported formats: PDF, DOC
+                    </p>
+                    
+                    <!-- Add CV Templates button to navbar and upload section -->
+                    <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">
+                            Don't have a resume? Download professional CV templates
+                        </p>
+
+                        <button onclick="downloadAllTemplates()" class="btn-cv-templates">
+                            <i class="fa fa-download"></i> Download CV Templates
+                        </button>
+
+                        <p style="color: #888; font-size: 0.8rem; margin-top: 10px;">
+                            Get a ZIP file with professional resume templates
+                        </p>
+                    </div>
+                    
+                </div>
+
+                <!-- Job Results Section (hidden initially) -->
+                <div id="jobResults" class="job-results">
+                    
+                    <!-- Skills Information -->
+                    <div id="skillsInfo" class="skills-info" style="display: none;">
+                        <h4>Skills Detected from Your Resume:</h4>
+                        <p id="detectedSkills"></p>
+                    </div>
+                    
+                    <!-- New file button and export jobs button -->
+                    <div class="action-buttons" style="margin-bottom: 20px;">
+                        <button onclick="resetToUpload()" class="new-search-btn">
+                            <i class="fa fa-upload"></i> Upload Another Resume
+                        </button>
+                        <button onclick="exportJobsToPage()" class="new-search-btn" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                            <i class="fa fa-external-link"></i> Save & View Jobs
+                        </button>
+                    </div>
+                    
+                    <!-- Job Cards Container - Updated to use grid layout -->
+                    <div class="jobs-grid" id="jobCards">
+                        <!-- Job cards will be dynamically generated here -->
+                    </div>
+                </div>
+                
+                
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="cvreader-footer">
+
+            <div class="footer-content">
+
+                <div class="footer-left">
+
+                    <div >
+
+                        <div class="brain-icon">
+                            <img class= "brain-icon" th:src="@{/images/logo_brain_bw.jpg}" alt= "Logo" href="/home"/>
+                         
+                        </div>
+
+                    </div>
+                    
+                    <div class="social-icons">
+                        <a href="https://www.facebook.com/hector.valletapia" target="_blank" class="social-link">
+                          <img class="fb-social-link" th:src="@{/images/fb_logo.png}" alt= "Logo" href="/home"/>
+                        </a>
+                        <a href="https://www.instagram.com/hectormvt" target="_blank" class="social-link">
+                          <img class="social-link" th:src="@{/images/insta_logo.png}" alt= "Logo" href="/home"/>
+                        </a>
+                        <a href="https://www.linkedin.com/in/hectorvalle95" target="_blank" class="social-link">
+                          <img class="social-link" th:src="@{/images/x_logo.png}" alt= "Logo" href="/home"/>
+                        </a>
+                      </div>
+
+                </div>
+
+                <div class="footer-right">
+                    <div class="footer-links">
+                      <a href="/contact" class="footer-link">Contact Us</a>
+                    </div>
+                </div>
+
+            </div>
+
+        </footer>
+
+    </div>   
+   
+   
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/home.js}"></script>
+ 
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' - CvReader.IO'"></title>
+    <link rel="icon" th:href="@{/images/logo_brain_bw_header.png}" href="/home">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" th:href="@{/css/styles-contact.css}">
+
+</head>
+<body>
+    <div class="cvreader-container">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="container">
+                    <img class ="navbar-brand" th:src="@{/images/logo_nobg.png}" alt= "Logo" href="/";>
+                    <button class="button_box" >
+                        <a class="nav-link" href="/home">Home</a>
+                    </button>
+                </div>
+        </nav>
+
+        <!-- Page Header -->
+        <section class="hero-section">
+            <div class="container text-center">
+                <h1 class="display-4 fw-bold welcome-message" th:text="${title}">Contact Us</h1>
+                <p class="lead sub-hero" th:text="${message}">Lets get in touch!</p>
+            </div>
+        </section>
+
+        <!-- Contact Content -->
+        <section class="content-section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h2>Send us a Message</h2>
+                        <form>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="firstName" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="firstName" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="lastName" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="lastName" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="subject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="subject" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="message" class="form-label">Message</label>
+                                <textarea class="form-control" id="message" rows="5" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg">Send Message</button>
+                        </form>
+                    </div>
+                    <div class="col-lg-4">
+                        <h2>Contact Information</h2>
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Get in Touch</h5>
+
+                                <div class="mb-3">
+                                    <strong>Address:</strong><br>
+                                    40 Glenesky Square<br>
+                                    Co. Dublin, D15AY06<br>
+                                    Ireland
+                                </div>
+
+                                <div class="mb-3">
+                                    <strong>Phone:</strong><br>
+                                    <a href="+353838049733">+353 83 804 97 33</a>
+                                </div>
+
+                                <div class="mb-3">
+                                    <strong>Email:</strong><br>
+                                    <a href="mailto:martin_valle95@hotmail.com">martin_valle95@hotmail.com</a>
+                                </div>
+
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="cvreader-footer">
+
+            <div class="footer-content">
+
+                <div class="footer-left">
+
+                    <div >
+
+                        <div class="brain-icon">
+                            <img class= "brain-icon" th:src="@{/images/logo_brain_bw.jpg}" alt= "Logo" href="/home"/>
+
+                        </div>
+
+                    </div>
+
+                    <div class="social-icons">
+                        <a href="https://www.facebook.com/hector.valletapia" target="_blank" class="social-link">
+                          <img class="fb-social-link" th:src="@{/images/fb_logo.png}" alt= "Logo" href="/home"/>
+                        </a>
+                        <a href="https://www.instagram.com/hectormvt" target="_blank" class="social-link">
+                          <img class="social-link" th:src="@{/images/insta_logo.png}" alt= "Logo" href="/home"/>
+                        </a>
+                        <a href="https://www.linkedin.com/in/hectorvalle95" target="_blank" class="social-link">
+                          <img class="social-link" th:src="@{/images/x_logo.png}" alt= "Logo" href="/home"/>
+                        </a>
+                      </div>
+
+                </div>
+
+                <div class="footer-right">
+                    <div class="footer-links">
+                      <a href="/contact" class="footer-link">Contact Us</a>
+                    </div>
+                </div>
+            </div>
+
+        </footer>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+</body>
+</html>

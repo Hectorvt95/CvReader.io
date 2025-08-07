@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' - My Website'">Home - CvReader</title>
+    <link rel="icon" th:href="@{/images/logo_brain_bw_header.png}" onclick="href='/'">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" th:href="@{/css/styles-jobs.css}">
+    <!--<link rel="stylesheet" href="C:\Users\marti\OneDrive\Documents\NetBeansProjects\DistSyst\CvReader\src\main\resources\static\css\styles.css">-->
+    
+</head>
+<body>
+        
+    <div class="cvreader-container">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <img class ="navbar-brand" th:src="@{/images/logo_nobg.png}" alt= "Logo" href="/";>
+                <button class="button_box" >
+                    <a class="nav-link" href="/contact">Contact Us</a>
+                </button>
+
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero-section" style="min-height: auto; padding: 20px 0;">
+            <div class="container">
+                
+                <!-- Loading Message -->
+                <div id="loadingMessage" class="text-center" style="display: none;">
+                    <h2 class="welcome-message">Loading Job Results...</h2>
+                    <i class="fa fa-spinner fa-spin fa-3x" style="color: white; margin-top: 20px;"></i>
+                </div>
+                
+                <!-- No Jobs Message -->
+                <div id="noJobsMessage" class="no-jobs-container" style="display: none;">
+                    <i class="fa fa-search fa-4x" style="color: #ddd; margin-bottom: 20px;"></i>
+                    <h2>No Jobs Available</h2>
+                    <p>No job data was found. Please upload your resume on the home page first.</p>
+                    <a href="/" class="btn btn-primary btn-lg">
+                        <i class="fa fa-upload"></i> Upload Resume
+                    </a>
+                </div>
+                
+                <!-- Jobs Content -->
+                <div id="jobsContent" style="display: none;">
+                    <!-- Header -->
+                    <div class="text-center" style="margin-bottom: 30px;">
+                        <h1 class="display-4 fw-bold welcome-message">Your Job Matches</h1>
+                        <h2 class="lead" style="color: white;" id="jobsSubtitle">Found job opportunities based on your skills</h2>
+                    </div>
+                    
+                    <!-- Statistics -->
+                    <div class="stats-container">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h3 id="totalJobs">0</h3>
+                                <p>Total Jobs Found</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h3 id="totalSources">0</h3>
+                                <p>Job Sources</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h3 id="skillsCount">0</h3>
+                                <p>Skills Matched</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Skills Display -->
+                    <div class="skills-display">
+                        <h4><i class="fa fa-tags"></i> Skills Detected from Your Resume:</h4>
+                        <div id="skillsContainer"></div>
+                    </div>
+                    
+                    <!-- Export Buttons -->
+                    <div class="export-buttons">
+                        <button class="export-btn" onclick="exportToCSV()">
+                            <i class="fa fa-download"></i> Export to XLS
+                        </button>
+                       
+                        <button class="export-btn" onclick="printJobs()">
+                            <i class="fa fa-print"></i> Print
+                        </button>
+                    </div>
+                    
+                    <div class="jobs-table-container" id="jobsTableContainer">
+                        <div class="table-header">
+                            <h3><i class="fa fa-list"></i> Job Listings</h3>
+                            <div class="table-info">
+                                <span id="tableInfo">Showing all jobs</span>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="jobs-table" id="jobsTable">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            Job Title 
+                                        </th>
+                                        <th>
+                                            Company 
+                                        </th>
+                                        <th>
+                                            Location 
+                                        </th>
+                                        <th>
+                                            Source 
+                                        </th>
+                                        <th>
+                                            Salary 
+                                        </th>
+                                        <th>
+                                            Posted Date 
+                                        </th>
+                                        
+                                    </tr>
+                                </thead>
+                                <tbody id="jobsTableBody">
+                                    <!-- Job rows will be dynamically generated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="cvreader-footer">
+
+            <div class="footer-content">
+
+                <div class="footer-left">
+
+                    <div >
+
+                        <div class="brain-icon">
+                            <img class= "brain-icon" th:src="@{/images/logo_brain_bw.jpg}" alt= "Logo" href="/home"/>
+                         
+                        </div>
+
+                    </div>
+                    
+                    <div class="social-icons">
+                        <a href="https://www.facebook.com/hector.valletapia" target="_blank" class="social-link">
+                          <img class="fb-social-link" th:src="@{/images/fb_logo.png}" alt= "Logo" href="/home"/>
+                        </a>
+                        <a href="https://www.instagram.com/hectormvt" target="_blank" class="social-link">
+                          <img class="social-link" th:src="@{/images/insta_logo.png}" alt= "Logo" href="/home"/>
+                        </a>
+                        <a href="https://www.linkedin.com/in/hectorvalle95" target="_blank" class="social-link">
+                          <img class="social-link" th:src="@{/images/x_logo.png}" alt= "Logo" href="/home"/>
+                        </a>
+                      </div>
+
+                </div>
+
+                <div class="footer-right">
+                    <div class="footer-links">
+                      <a href="/contact" class="footer-link">Contact Us</a>
+                    </div>
+                </div>
+
+            </div>
+
+        </footer>
+
+    </div>   
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables to store job and skills data
+        let jobsData = [];
+        let skillsData = [];
+
+        // Function to get URL parameters (if needed for future use)
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Function to get data from sessionStorage
+        function getStoredJobData() {
+            const stored = sessionStorage.getItem('jobsData');
+            return stored ? JSON.parse(stored) : null;
+        }
+
+        // Function to put the skills, to show them in a contairner
+        function formatSkillsDisplay(skills) {
+            if (!skills || skills.length === 0) {
+                return '<em>No skills detected</em>';
+            }
+            let skillsArray = [];
+            skillsArray = skills.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            const skillBadges = skillsArray.map(skill => 
+                `<span class="skill-badge">${escapeHtml(skill)}</span>`
+            ).join(' ');
+
+            return skillBadges;
+        }
+
+        // Function to escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Function to generate job table rows
+        function generateJobTableRows(jobs) {
+            return jobs.map((job, index) => `
+                <tr data-job-index="${index}">
+                    
+                    <td class="job-title-cell" title="${job.title || 'Job Title Not Available'}">${truncateText(job.title || 'Job Title Not Available', 40)}</td>
+                    <td class="job-company-cell">${job.company || 'Not Specified'}</td>
+                    <td class="job-location-cell">${job.location || 'Not Specified'}</td>
+                    <td class="job-source-cell">
+                        <span class="source-badge">${job.source || 'Unknown'}</span>
+                    </td>
+                    <td class="job-salary-cell">${job.salary || 'Not Listed'}</td>
+                    <td class="job-date-cell">${job.postedDate || 'Not Available'}</td>
+         
+                </tr>
+            `).join('');
+        }
+
+        // Function to truncate text for table display
+        function truncateText(text, maxLength) {
+            if (!text) return '';
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+
+        // Main function to display jobs on the page - UPDATED FOR TABLE
+        function displayJobs(data) {
+            // Hide loading message
+            document.getElementById('loadingMessage').style.display = 'none';
+
+            // Check if we have job data
+            if (!data || !data.jobs || data.jobs.length === 0) {
+                document.getElementById('noJobsMessage').style.display = 'block';
+                return;
+            }
+
+            // Store data globally
+            jobsData = data.jobs;
+            skillsData = data.skills;
+
+            // Show jobs content section
+            document.getElementById('jobsContent').style.display = 'block';
+
+            // Update statistics
+            document.getElementById('totalJobs').textContent = data.jobs.length;
+            document.getElementById('jobsSubtitle').textContent = `Found ${data.jobs.length} job opportunities`;
+
+            // Count unique sources
+            const uniqueSources = [...new Set(data.jobs.map(job => job.source).filter(source => source))];
+            document.getElementById('totalSources').textContent = uniqueSources.length;
+
+            // Display skills information
+            if (data.skills) {
+                const skillsArray = typeof data.skills === 'string' 
+                    ? data.skills.split(',').map(s => s.trim()).filter(s => s.length > 0)
+                    : (Array.isArray(data.skills) ? data.skills : []);
+
+                document.getElementById('skillsCount').textContent = skillsArray.length;
+                document.getElementById('skillsContainer').innerHTML = formatSkillsDisplay(data.skills);
+            } else {
+                document.getElementById('skillsCount').textContent = 0;
+                document.getElementById('skillsContainer').innerHTML = '<em>No skills detected</em>';
+            }
+
+            //Generate and display job table
+            document.getElementById('jobsTableBody').innerHTML = generateJobTableRows(data.jobs);
+            document.getElementById('tableInfo').textContent = `Showing ${data.jobs.length} job${data.jobs.length !== 1 ? 's' : ''}`;
+        }
+
+        // Export functions - KEPT THE SAME
+        function exportToCSV() {
+            if (jobsData.length === 0) {
+                alert('No jobs to export');
+                return;
+            }
+
+            const headers = ['Title', 'Company', 'Location', 'Source', 'Salary', 'Posted Date', 'URL'];
+            const csvContent = [
+                headers.join(','),
+                ...jobsData.map(job => [
+                    `"${(job.title || '').replace(/"/g, '""')}"`,
+                    `"${(job.company || '').replace(/"/g, '""')}"`,
+                    `"${(job.location || '').replace(/"/g, '""')}"`,
+                    `"${(job.source || '').replace(/"/g, '""')}"`,
+                    `"${(job.salary || '').replace(/"/g, '""')}"`,
+                    `"${(job.postedDate || '').replace(/"/g, '""')}"`,
+                ].join(','))
+            ].join('\n');
+
+            // Create and download CSV file
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'job_results.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        //Print function for table format
+        function printJobs() {
+            const printWindow = window.open('', '_blank');
+            const printContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Job Search Results</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        .header { text-align: center; margin-bottom: 30px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; font-weight: bold; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                        .source-badge { background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; }
+                        @media print { table { font-size: 0.8em; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Job Search Results</h1>
+                        <p><strong>Total Jobs:</strong> ${jobsData.length} | <strong>Export Date:</strong> ${new Date().toLocaleString()}</p>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Job Title</th>
+                                <th>Company</th>
+                                <th>Location</th>
+                                <th>Source</th>
+                                <th>Salary</th>
+                                <th>Posted Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${jobsData.map(job => `
+                                <tr>
+                                    <td>${job.title || 'Not Available'}</td>
+                                    <td>${job.company || 'Not Specified'}</td>
+                                    <td>${job.location || 'Not Specified'}</td>
+                                    <td><span class="source-badge">${job.source || 'Unknown'}</span></td>
+                                    <td>${job.salary || 'Not Listed'}</td>
+                                    <td>${job.postedDate || 'Not Available'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // Initialize page when DOM is loaded - KEPT THE SAME
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show loading message initially
+            document.getElementById('loadingMessage').style.display = 'block';
+
+            // Try to get data from sessionStorage
+            const storedData = getStoredJobData();
+
+            if (storedData) {
+                // Display jobs if data is found
+                displayJobs(storedData);
+            } else {
+                // Show no jobs message after a short delay if no data found
+                setTimeout(() => {
+                    document.getElementById('loadingMessage').style.display = 'none';
+                    document.getElementById('noJobsMessage').style.display = 'block';
+                }, 1000);
+            }
+        });
+
+        // Listen for data from home page (if using window.postMessage) - KEPT THE SAME
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'jobsData') {
+                displayJobs(event.data.data);
+            }
+        });
+
+        
+    </script>
+ 
+</body>
+</html>

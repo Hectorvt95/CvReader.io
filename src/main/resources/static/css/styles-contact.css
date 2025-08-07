@@ -1,0 +1,182 @@
+.cvreader-container{
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f5f5f5;
+    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    height: 90px;
+}
+
+.navbar {
+    color: black;
+}
+
+.button_box{
+    border: none;
+    /*background: #4a0cffc7;*/
+    background: #ff690cc7;
+    color: #ffffff;
+    border-radius: 7px;
+    width: 117px;
+    height: 37px;
+    font-weight: 500;
+}
+
+.welcome-message{
+    text-shadow: 0 2px 8px #1e90ff, 
+                0 4px 16px #00bfff, 
+                0 8px 32px #0077ff, 
+                0 12px 48px #005fa3;
+    color:white;
+}
+
+.hero-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    /*background: linear-gradient(135deg, #2563eb 17%, #3b82f6 48%, #8b5cf6 76%);*/
+    /*background: linear-gradient(359deg, #38c0ff 20px, #38c0ff 40px, #59e1ff 60px, #fbae4f 80px, #ea5455 120px, #181929 140px);*/
+    background: linear-gradient(357deg, #000000 9px, #1d53a1 23px, #38C0FE 40px, #59e1ff 67px, #fbae4f 100px, #ea5455 120px, #181929 140px);
+    color: rgb(0, 0, 0);
+}
+
+.sub-hero{
+    color: white;
+    font-weight: 400;
+    margin-top: -10px;
+}
+
+
+.content-section {
+    padding: 3rem 0;
+    flex: 1;
+}
+
+/* Footer */
+.cvreader-footer {
+  background-color: white;
+  border-top: 1px solid #e5e5e5;
+  padding: 24px;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brain-icon {
+  height: 39px;
+}
+
+.social-icons {
+  display: flex;
+  gap: 12px;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.fb-social-link{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.social-link:hover {
+  background-color: #4285f4;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+}
+
+.footer-link {
+  color: #666;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.footer-link:hover {
+  color: #4285f4;
+}
+
+
+
+/* Responsive Desgn */
+@media (max-width: 768px) {
+    .jobs-grid {
+        grid-template-columns: 1fr;
+        padding: 0 10px;
+        gap: 15px;
+    }
+    
+    .job-card-expanded {
+        padding: 20px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .new-search-btn {
+        margin: 5px 0;
+        width: auto;
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section {
+        padding: 20px 12px;
+    }
+    
+    .upload-form {
+        margin: 20px 10px;
+        padding: 20px;
+    }
+    
+    .job-title {
+        font-size: 1.2rem;
+    }
+    
+    .job-company, .job-location, .job-salary {
+        font-size: 0.9rem;
+    }
+}
