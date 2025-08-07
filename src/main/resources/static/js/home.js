@@ -1,5 +1,5 @@
 
-// Global variables to store current job and skills data W
+// Global variables to store current job and skills data
 let currentJobsData = null;
 let currentSkillsData = null;
 let currentFilename = null; // NEW: Store the uploaded filename
